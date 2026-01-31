@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Pass/Fail Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        input[type="number"],
+        input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="range"] {
+            padding: 0;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        .value-display {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.pass {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+
+        .result.fail {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+
+        .result h2 {
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .result.pass h2 {
+            color: #28a745;
+        }
+
+        .result.fail h2 {
+            color: #dc3545;
+        }
+
+        .result p {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin-top: 15px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e8eaf6;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Student Pass/Fail Predictor</h1>
+        <p class="subtitle">Using Artificial Neural Network</p>
+
+        <div class="info-box">
+            <p>Enter student performance metrics below to predict pass/fail status using our AI model.</p>
+        </div>
+
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="attendance">
+                    Attendance (%) <span class="value-display" id="attendanceValue">75</span>
+                </label>
+                <input type="range" id="attendance" name="attendance" min="0" max="100" value="75" step="1">
+            </div>
+
+            <div class="form-group">
+                <label for="study_hours">
+                    Study Hours per Day <span class="value-display" id="studyHoursValue">5</span>
+                </label>
+                <input type="range" id="study_hours" name="study_hours" min="0" max="10" value="5" step="0.5">
+            </div>
+
+            <div class="form-group">
+                <label for="previous_grade">
+                    Previous Grade (%) <span class="value-display" id="previousGradeValue">70</span>
+                </label>
+                <input type="range" id="previous_grade" name="previous_grade" min="0" max="100" value="70" step="1">
+            </div>
+
+            <div class="form-group">
+                <label for="assignments_completed">
+                    Assignments Completed (%) <span class="value-display" id="assignmentsValue">80</span>
+                </label>
+                <input type="range" id="assignments_completed" name="assignments_completed" min="0" max="100" value="80" step="1">
+            </div>
+
+            <button type="submit" id="predictBtn">Predict Result</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing student data...</p>
+        </div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        // Update range slider values
+        const ranges = document.querySelectorAll('input[type="range"]');
+        ranges.forEach(range => {
+            const valueDisplay = document.getElementById(range.id + 'Value');
+            range.addEventListener('input', (e) => {
+                valueDisplay.textContent = e.target.value;
+            });
+        });
+
+        // Form submission
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                attendance: parseFloat(document.getElementById('attendance').value),
+                study_hours: parseFloat(document.getElementById('study_hours').value),
+                previous_grade: parseFloat(document.getElementById('previous_grade').value),
+                assignments_completed: parseFloat(document.getElementById('assignments_completed').value)
+            };
+
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const predictBtn = document.getElementById('predictBtn');
+
+            // Show loading
+            loading.classList.add('active');
+            result.style.display = 'none';
+            predictBtn.disabled = true;
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Hide loading
+                    loading.classList.remove('active');
+                    
+                    // Show result
+                    result.className = 'result ' + (data.prediction.toLowerCase());
+                    result.innerHTML = `
+                        <h2>${data.prediction === 'Pass' ? '✅ PASS' : '❌ FAIL'}</h2>
+                        <p><strong>Probability:</strong> ${data.probability.toFixed(2)}%</p>
+                        <p><strong>Confidence:</strong> ${data.confidence.toFixed(2)}%</p>
+                    `;
+                    result.style.display = 'block';
+                } else {
+                    throw new Error(data.error || 'Prediction failed');
+                }
+            } catch (error) {
+                loading.classList.remove('active');
+                result.className = 'result fail';
+                result.innerHTML = `
+                    <h2>Error</h2>
+                    <p>${error.message}</p>
+                `;
+                result.style.display = 'block';
+            } finally {
+                predictBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
